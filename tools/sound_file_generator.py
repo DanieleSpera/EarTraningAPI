@@ -38,7 +38,7 @@ class sound_generator():
 
       if(not os.path.exists(path_note)):
          soundwave = self.generate_note(self.note_dict.get(self.selected_root))
-         self.generate_file(soundwave,self.selected_root)
+         self.generate_file(soundwave,self.audio_dir,self.selected_root)
          os.remove(self.audio_dir+self.selected_root+'.wav')
       return (path_note)
 
@@ -58,17 +58,15 @@ class sound_generator():
          frequency = frequency * 2
       return frequency
 
-   def generate_file(self,soundwave,name):
-      wav_path = self.audio_dir +name+'.wav'
+   def generate_file(self, soundwave, path, name):
+      wav_path = path +name+'.wav'
 
       wavfile.write(wav_path, self.sample_rate,soundwave)
 
-      mp3_path = self.audio_dir +name+'.mp3'
-
-      rate,data = wavfile.read(wav_path)
-      shifted = data * (2 **31-1)
-      ints = shifted.astype(np.int32)
+      mp3_path = path +name+'.mp3'
 
       command =  "ffmpeg -i "+wav_path+" -vn -ar 44100  -ac 2 -b:a 192k "+mp3_path
 
-      os.system(command)      
+      os.system(command)
+      
+      os.remove(wav_path)

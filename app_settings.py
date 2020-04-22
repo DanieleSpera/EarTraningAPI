@@ -1,9 +1,6 @@
 #Server Variables
-#audio_dir = '/var/www/MusicApp/app/audio_files/'
+audio_dir = 'audiofilepath/'
 
-
-#Local Variables
-audio_dir = "/Users/danielespera/Downloads/PythonProjects/ChordProject/audio_files/"
 
 sample_rate = 44100
 

@@ -1,6 +1,7 @@
 """ Interval Generation Module """
 
 import os
+from enum import Enum 
 import numpy as np
 
 import app_settings
@@ -13,7 +14,7 @@ class Interval:
     def __init__(self):
 
         #app settings
-        self.audio_dir = app_settings.audio_dir
+        self.audio_dir = app_settings.audio_dir + "Intervals/"
         self.notes_list = app_settings.note_freq_dict
         self.intervals = app_settings.intervals
 
@@ -23,6 +24,7 @@ class Interval:
         self.selected_root = ""
         self.selected_interval = ""
         self.s_generator = sound_generator()
+        self.category = Interval_Category.Melodic
         
     def get_second_note_from_root(self, note_1, selected_interval):
         """Get the second note given the first
@@ -47,23 +49,29 @@ class Interval:
         
         return note_2
 
-    def get_interval_audio_url(self,root,selected_interval):
+    #---------> API INPUT / ENTRY POINT
+    def get_interval_audio_url(self,root,selected_interval,category):
 
         self.selected_root = root.replace("sharp","#")
         self.selected_interval = selected_interval
+        self.category = Interval_Category(category)
 
-        file_name = self.selected_root+"-"+self.selected_interval
+        file_name = self.selected_root+"-"+ self.selected_interval
 
-        path_note = self.audio_dir +file_name+'.mp3'
+        folder_file = self.audio_dir + self.category.value+"/"
+        path_note = folder_file + file_name+'.mp3'
 
         if(not os.path.exists(path_note)):
-            soundwave = self.generate_interval_audio(self.selected_root,self.selected_interval)
-            self.s_generator.generate_file(soundwave, file_name)
-            os.remove(self.audio_dir+file_name+'.wav')
+            self.generate_interval(self.selected_root,self.selected_interval)
+            soundwave = self.generate_interval_soundwave()
+            self.s_generator.generate_file(soundwave, folder_file, file_name)
 
         return path_note
 
-    def generate_interval_audio(self, root, selected_interval):
+    def generate_interval(self, root, selected_interval):
+        """Get the second note given the first
+        in -> String root note , String Interval
+        out -> void """
 
         self.note_1 = Note()
         self.note_1.name = root[:-1] #note name
@@ -75,18 +83,24 @@ class Interval:
 
         self.note_2.log_note_property()
 
-        interval_soundwave = self.generate_interval_soundwave()
-
-        return interval_soundwave
-        
     def generate_interval_soundwave(self):
-        
+        print('generate_interval_soundwave')
         if None  in (self.note_1, self.note_1):
             raise Exception('Interval Notes are not defined')
         
         sound_wav_1 = self.s_generator.generate_note(self.note_1.frequency)
         sound_wav_2 = self.s_generator.generate_note(self.note_2.frequency)
 
-        interval_wave = np.concatenate((sound_wav_1, sound_wav_2), axis=None)
+        if self.category == Interval_Category.Melodic:
+            print('Melodic')
+            interval_wave = np.concatenate((sound_wav_1, sound_wav_2), axis=None)
+        elif self.category == Interval_Category.Harmonic:
+            print('Harmonic')
+            interval_wave = sound_wav_1 + sound_wav_2
 
         return interval_wave
+
+
+class Interval_Category(Enum):
+    Melodic = "Melodic"
+    Harmonic = "Harmonic"
